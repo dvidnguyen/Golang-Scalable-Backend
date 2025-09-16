@@ -48,10 +48,12 @@ type ProductUpdate struct {
 func (Product) TableName() string { return "products" }
 
 func main() {
+	// connect db
 	dsn := os.Getenv("DB_CONN_STR")
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
+
 		log.Fatalln(err)
 	}
 
