@@ -2,9 +2,12 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -28,6 +31,18 @@ type BaseModel struct {
 	UpdatedAt time.Time `gorm:"column:updated_at"`
 }
 
+func GenNewModel() BaseModel {
+	now := time.Now().UTC()
+	newId, _ := uuid.NewV7()
+
+	return BaseModel{
+		Id:        newId,
+		Status:    "activated",
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+}
+
 type Product struct {
 	BaseModel
 	CategoryId int    `gorm:"column:category_id"`
@@ -47,8 +62,82 @@ type ProductUpdate struct {
 
 func (Product) TableName() string { return "products" }
 
+// func main() {
+// //	// connect db
+// //	dsn := os.Getenv("DB_CONN_STR")
+// //	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+// //
+// //	if err != nil {
+// //
+// //		log.Fatalln(err)
+// //	}
+// //
+// //	now := time.Now().UTC()
+// //
+// //	newId, _ := uuid.NewV7()
+// //
+// //	newProd := Product{
+// //		BaseModel: BaseModel{
+// //			Id:        newId,
+// //			Status:    "activated",
+// //			CreatedAt: now,
+// //			UpdatedAt: now,
+// //		},
+// //		CategoryId: 1,
+// //		Name:       "Latte",
+// //		//Image:       nil,
+// //		Type:        "drink",
+// //		Description: "",
+// //	}
+// //
+// //	if err := db.Table("products").Create(&newProd).Error; err != nil {
+// //		log.Println(err)
+// //	}
+// //
+// //	var oldProduct Product
+// //
+// //	if err := db.
+// //		Table(Product{}.TableName()).
+// //		//Where("id = ?", 4).
+// //		First(&oldProduct).Error; err != nil {
+// //		log.Println(err)
+// //	}
+// //
+// //	log.Println("Product:", oldProduct)
+// //
+// //	var prods []Product
+// //
+// //	if err := db.
+// //		Table(Product{}.TableName()).
+// //		Where("status not in (?)", []string{"deactivated"}).
+// //		Limit(10).
+// //		Offset(10).
+// //		Order("id desc").
+// //		Find(&prods).Error; err != nil {
+// //		log.Println(err)
+// //	}
+// //
+// //	log.Println("Products:", prods)
+// //
+// //	//oldProduct.Name = ""
+// //
+// //	//emptyStr := "Latte"
+// //
+// //	//if err := db.
+// //	//	Table(Product{}.TableName()).
+// //	//	Where("id = ?", 4).
+// //	//	Updates(ProductUpdate{Name: &emptyStr}).Error; err != nil {
+// //	//	log.Println(err)
+// //	//}
+// //
+// //	//if err := db.
+// //	//	Table(Product{}.TableName()).
+// //	//	Where("id = ?", 4).
+// //	//	Delete(nil).Error; err != nil {
+// //	//	log.Println(err)
+// //	//}
+// //}
 func main() {
-	// connect db
 	dsn := os.Getenv("DB_CONN_STR")
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
@@ -57,68 +146,42 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	now := time.Now().UTC()
+	r := gin.Default()
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	})
+	v1 := r.Group("/v1")
+	{
+		// check and parse dât
+		product := v1.Group("/product")
+		product.POST("", func(c *gin.Context) {
+			var productData Product
+			if err := c.BindJSON(&productData); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			// bussiness logic
+			productData.Name = strings.TrimSpace(productData.Name)
+			if productData.Name == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Name product can't be empty"})
+				return
+			}
 
-	newId, _ := uuid.NewV7()
+			productData.BaseModel = GenNewModel()
 
-	newProd := Product{
-		BaseModel: BaseModel{
-			Id:        newId,
-			Status:    "activated",
-			CreatedAt: now,
-			UpdatedAt: now,
-		},
-		CategoryId: 1,
-		Name:       "Latte",
-		//Image:       nil,
-		Type:        "drink",
-		Description: "",
+			// save to db
+			if err := db.Table("products").Create(&productData).Error; err != nil {
+				log.Println(err)
+			}
+
+			// return data to client
+			c.JSON(http.StatusCreated, gin.H{
+				"message": productData.Id,
+			})
+		})
 	}
 
-	if err := db.Table("products").Create(&newProd).Error; err != nil {
-		log.Println(err)
-	}
-
-	var oldProduct Product
-
-	if err := db.
-		Table(Product{}.TableName()).
-		//Where("id = ?", 4).
-		First(&oldProduct).Error; err != nil {
-		log.Println(err)
-	}
-
-	log.Println("Product:", oldProduct)
-
-	var prods []Product
-
-	if err := db.
-		Table(Product{}.TableName()).
-		Where("status not in (?)", []string{"deactivated"}).
-		Limit(10).
-		Offset(10).
-		Order("id desc").
-		Find(&prods).Error; err != nil {
-		log.Println(err)
-	}
-
-	log.Println("Products:", prods)
-
-	//oldProduct.Name = ""
-
-	//emptyStr := "Latte"
-
-	//if err := db.
-	//	Table(Product{}.TableName()).
-	//	Where("id = ?", 4).
-	//	Updates(ProductUpdate{Name: &emptyStr}).Error; err != nil {
-	//	log.Println(err)
-	//}
-
-	//if err := db.
-	//	Table(Product{}.TableName()).
-	//	Where("id = ?", 4).
-	//	Delete(nil).Error; err != nil {
-	//	log.Println(err)
-	//}
+	r.Run(":3000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
