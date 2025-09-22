@@ -2,6 +2,7 @@ package repository
 
 import (
 	"Ls04_GORM/module/user/domain"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -18,4 +19,12 @@ type UserDTO struct {
 
 func (dto UserDTO) ToEntity() (*domain.User, error) {
 	return domain.NewUser(dto.Id, dto.FirstName, dto.LastName, dto.Email, dto.Password, dto.Salt, domain.GetRole(dto.Role))
+}
+
+type SessionDTO struct {
+	Id           uuid.UUID `gorm:"column:id;"`
+	UserId       uuid.UUID `gorm:"column:user_id;"`
+	RefreshToken string    `gorm:"column:refresh_token;"`
+	AccessExpAt  time.Time `gorm:"column:access_exp_at;"`
+	RefreshExpAt time.Time `gorm:"column:refresh_exp_at;"`
 }

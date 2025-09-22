@@ -7,27 +7,34 @@ import (
 	"errors"
 )
 
-//5
-
 type UseCase interface {
 	Register(ctx context.Context, dto EmailPasswordRegistration) error
+	Login(ctx context.Context, dto EmailPasswordLogin) (*TokenResponse, error)
 }
 
-// 2
 type useCase struct {
-	repo   UserRepository
-	hasher Hasher
+	repo          UserRepository
+	hasher        Hasher
+	tokenProvider TokenProvider
+	sessionRepo   SessionRepository
 }
 
 // 3
 
-func NewUseCase(repo UserRepository, hasher Hasher) UseCase {
-	return &useCase{repo: repo, hasher: hasher}
+func NewUseCase(repo UserRepository, hasher Hasher, tokenProvider TokenProvider, sessionRepo SessionRepository) UseCase {
+	return &useCase{repo: repo, hasher: hasher, tokenProvider: tokenProvider, sessionRepo: sessionRepo}
 }
 
 type Hasher interface {
 	RandomStr(length int) (string, error)
 	HashPassword(salt, password string) (string, error)
+	CompareHashPassword(hashedPassword, salt, password string) bool
+}
+
+type TokenProvider interface {
+	IssueToken(ctx context.Context, id, sub string) (token string, err error)
+	TokenExpireInSeconds() int
+	RefreshExpireInSeconds() int
 }
 
 // 4
@@ -85,4 +92,8 @@ type UserRepository interface {
 	//Update(ctx context.Context, data *domain.User) error
 	//Find(ctx context.Context, id uuid.UUID) (*domain.User, error)
 	//Delete(ctx context.Context, data *domain.User) error
+}
+
+type SessionRepository interface {
+	Create(ctx context.Context, data *domain.Session) error
 }

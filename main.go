@@ -2,6 +2,7 @@ package main
 
 import (
 	"Ls04_GORM/common"
+	"Ls04_GORM/component"
 	"Ls04_GORM/module/product/controller"
 	"Ls04_GORM/module/product/productdomain/productusecase"
 	"Ls04_GORM/module/product/productmysql"
@@ -46,7 +47,15 @@ func main() {
 		}
 	}
 
-	userUC := usecase.NewUseCase(repository.NewUserRepository(db), &common.Hasher{})
+	tokenProvider := component.NewJWTProvider("very-important-please-change-it!",
+		60*60*24*7, 60*60*24*14)
+	userUC := usecase.NewUseCase(repository.NewUserRepository(db), &common.Hasher{}, tokenProvider, repository.NewSessionRepository(db))
 	httpservice.NewService(userUC).Routes(v1)
 	r.Run(":3000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
+
+//type MockRepository struct{}
+//
+//func (r MockRepository) Create(ctx context.Context, data *domain.Session) error {
+//	return nil
+//}
