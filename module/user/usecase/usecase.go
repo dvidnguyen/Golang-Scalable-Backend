@@ -3,6 +3,8 @@ package usecase
 import (
 	"Ls04_GORM/module/user/domain"
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type UseCase interface {
@@ -43,6 +45,7 @@ type UserRepository interface {
 
 type UserQueryRepository interface {
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
+	FindById(ctx context.Context, id uuid.UUID) (*domain.User, error)
 }
 type UserCmdRepository interface {
 	Create(ctx context.Context, data *domain.User) error
@@ -52,7 +55,9 @@ type SessionRepository interface {
 	SessionQueryRepository
 	SessionCmdRepository
 }
-type SessionQueryRepository interface{}
+type SessionQueryRepository interface {
+	Find(ctx context.Context, email string) (*domain.Session, error)
+}
 type SessionCmdRepository interface {
 	Create(ctx context.Context, data *domain.Session) error
 }

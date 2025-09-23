@@ -3,6 +3,7 @@ package main
 import (
 	"Ls04_GORM/common"
 	"Ls04_GORM/component"
+	"Ls04_GORM/middleware"
 	"Ls04_GORM/module/product/controller"
 	"Ls04_GORM/module/product/productdomain/productusecase"
 	"Ls04_GORM/module/product/productmysql"
@@ -27,8 +28,11 @@ func main() {
 	}
 
 	r := gin.Default()
+	tokenProvider := component.NewJWTProvider("very-important-please-change-it!",
+		60*60*24*7, 60*60*24*14)
+	authClient := usecase.NewIntrospectUC(repository.NewUserRepository(db), repository.NewSessionRepository(db), tokenProvider)
 
-	r.GET("/ping", func(c *gin.Context) {
+	r.GET("/ping", middleware.RequireAuth(authClient), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
@@ -47,8 +51,6 @@ func main() {
 		}
 	}
 
-	tokenProvider := component.NewJWTProvider("very-important-please-change-it!",
-		60*60*24*7, 60*60*24*14)
 	userUC := usecase.NewUseCase(repository.NewUserRepository(db), repository.NewSessionRepository(db), &common.Hasher{}, tokenProvider)
 	httpservice.NewService(userUC).Routes(v1)
 	r.Run(":3000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
