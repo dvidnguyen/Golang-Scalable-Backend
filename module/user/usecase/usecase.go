@@ -10,11 +10,13 @@ import (
 type UseCase interface {
 	Register(ctx context.Context, dto EmailPasswordRegistration) error
 	Login(ctx context.Context, dto EmailPasswordLogin) (*TokenResponse, error)
+	RefreshToken(ctx context.Context, refreshToken string) (*TokenResponse, error)
 }
 
 type useCase struct {
 	*LoginUC
 	*RegisterUC
+	*refreshTokenUC
 }
 
 func NewUseCase(repo UserRepository, sessionRepo SessionRepository, hasher Hasher, tokenProvider TokenProvider) *useCase {
@@ -24,7 +26,24 @@ func NewUseCase(repo UserRepository, sessionRepo SessionRepository, hasher Hashe
 	}
 }
 
+type Builder interface {
+	BuildUserQueryRepo() UserQueryRepository
+	BuildUserCmdRepo() UserCmdRepository
+	BuildHasher() Hasher
+	BuildTokenProvider() TokenProvider
+	BuildSessionQueryRepo() SessionQueryRepository
+	BuildSessionCmdRepo() SessionCmdRepository
+	BuildSessionRepo() SessionRepository
+}
+
 // 3
+func UseCaseWithBuilder(b Builder) UseCase {
+	return &useCase{
+		RegisterUC:     NewRegisterUC(b.BuildUserQueryRepo(), b.BuildUserCmdRepo(), b.BuildHasher()),
+		LoginUC:        NewLoginUC(b.BuildUserQueryRepo(), b.BuildSessionRepo(), b.BuildHasher(), b.BuildTokenProvider()),
+		refreshTokenUC: NewRefreshTokenUC(b.BuildUserQueryRepo(), b.BuildSessionRepo(), b.BuildTokenProvider(), b.BuildHasher()),
+	}
+}
 
 type Hasher interface {
 	RandomStr(length int) (string, error)
@@ -42,7 +61,6 @@ type UserRepository interface {
 	UserQueryRepository
 	UserCmdRepository
 }
-
 type UserQueryRepository interface {
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
 	FindById(ctx context.Context, id uuid.UUID) (*domain.User, error)
@@ -57,7 +75,10 @@ type SessionRepository interface {
 }
 type SessionQueryRepository interface {
 	Find(ctx context.Context, email string) (*domain.Session, error)
+	FindByRefreshToken(ctx context.Context, rt string) (*domain.Session, error)
+	CountSessionByUserId(ctx context.Context, userId uuid.UUID) (int64, error)
 }
 type SessionCmdRepository interface {
 	Create(ctx context.Context, data *domain.Session) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }

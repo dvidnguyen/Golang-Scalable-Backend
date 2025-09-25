@@ -8,23 +8,35 @@ import (
 )
 
 type LoginUC struct {
-	userRepoQuery  UserQueryRepository
-	sessionRepoCmd SessionCmdRepository
-	hasher         Hasher
-	tokenProvider  TokenProvider
+	userRepo    UserQueryRepository
+	sessionRepo SessionRepository
+
+	hasher        Hasher
+	tokenProvider TokenProvider
 }
 
-func NewLoginUC(userRepoQuery UserQueryRepository, sessionRepoCmd SessionCmdRepository, hasher Hasher, tokenProvider TokenProvider) *LoginUC {
-	return &LoginUC{userRepoQuery: userRepoQuery, sessionRepoCmd: sessionRepoCmd, hasher: hasher, tokenProvider: tokenProvider}
+func NewLoginUC(userRepo UserQueryRepository, sessionRepo SessionRepository, hasher Hasher, tokenProvider TokenProvider) *LoginUC {
+	return &LoginUC{userRepo: userRepo, sessionRepo: sessionRepo, hasher: hasher, tokenProvider: tokenProvider}
 }
 
 func (uc *LoginUC) Login(ctx context.Context, dto EmailPasswordLogin) (*TokenResponse, error) {
 	// 1.Find user by email
 
-	user, err := uc.userRepoQuery.FindByEmail(ctx, dto.Email)
+	user, err := uc.userRepo.FindByEmail(ctx, dto.Email)
 
 	if err != nil {
 		return nil, err
+	}
+
+	if user.Status() == "banned" {
+		return nil, domain.ErrUserBanned
+	}
+	count, err := uc.sessionRepo.CountSessionByUserId(ctx, user.Id())
+	if err != nil {
+		return nil, err
+	}
+	if count < 0 || count > 5 {
+		return nil, domain.ErrTooManyLogin
 	}
 	// 2.hash and compare password with password login and salt
 	if ok := uc.hasher.CompareHashPassword(user.Password(), user.Salt(), dto.Password); !ok {
@@ -47,7 +59,7 @@ func (uc *LoginUC) Login(ctx context.Context, dto EmailPasswordLogin) (*TokenRes
 	refreshExpAt := time.Now().UTC().Add(time.Second * time.Duration(uc.tokenProvider.RefreshExpireInSeconds()))
 	session := domain.NewSession(sessionID, userID, refreshToken, tokenExpAt, refreshExpAt)
 
-	if err := uc.sessionRepoCmd.Create(ctx, session); err != nil {
+	if err := uc.sessionRepo.Create(ctx, session); err != nil {
 		return nil, err
 	}
 	// 5. return token

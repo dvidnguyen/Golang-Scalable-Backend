@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Ls04_GORM/common"
+	"Ls04_GORM/builder"
 	"Ls04_GORM/component"
 	"Ls04_GORM/middleware"
 	"Ls04_GORM/module/product/controller"
@@ -51,8 +51,9 @@ func main() {
 		}
 	}
 
-	userUC := usecase.NewUseCase(repository.NewUserRepository(db), repository.NewSessionRepository(db), &common.Hasher{}, tokenProvider)
-	httpservice.NewService(userUC).Routes(v1)
+	//userUC := usecase.NewUseCase(repository.NewUserRepository(db), repository.NewSessionRepository(db), &common.Hasher{}, tokenProvider)
+	userUseCase := usecase.UseCaseWithBuilder(builder.NewSimpleBuilder(db, tokenProvider))
+	httpservice.NewService(userUseCase).Routes(v1)
 	r.Run(":3000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
