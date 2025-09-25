@@ -37,6 +37,7 @@ func (uc *LoginUC) Login(ctx context.Context, dto EmailPasswordLogin) (*TokenRes
 	}
 	if count < 0 || count > 5 {
 		return nil, domain.ErrTooManyLogin
+
 	}
 	// 2.hash and compare password with password login and salt
 	if ok := uc.hasher.CompareHashPassword(user.Password(), user.Salt(), dto.Password); !ok {
