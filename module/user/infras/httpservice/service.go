@@ -1,6 +1,7 @@
 package httpservice
 
 import (
+	"Ls04_GORM/common"
 	"Ls04_GORM/module/user/usecase"
 	"net/http"
 
@@ -22,7 +23,7 @@ func (s *service) handleRegister() gin.HandlerFunc {
 			return
 		}
 		if err := s.uc.Register(c.Request.Context(), dto); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			common.WriteErrorResponse(c, err)
 			return
 		}
 		c.JSON(http.StatusCreated, gin.H{"data": "register successfully"})

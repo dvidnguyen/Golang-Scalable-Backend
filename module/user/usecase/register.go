@@ -5,6 +5,8 @@ import (
 	"Ls04_GORM/module/user/domain"
 	"context"
 	"errors"
+
+	"github.com/viettranx/service-context/core"
 )
 
 type RegisterUC struct {
@@ -27,11 +29,11 @@ func (uc *RegisterUC) Register(ctx context.Context, dto EmailPasswordRegistratio
 	user, err := uc.userQueryRepo.FindByEmail(ctx, dto.Email)
 
 	if user != nil {
-		return domain.ErrEmailHasExisted
+		return core.ErrBadRequest.WithError(domain.ErrEmailHasExisted.Error())
 	}
 
 	if err != nil && !errors.Is(err, common.ErrRecordNotFound) {
-		return err
+		return core.ErrInternalServerError.WithError("cannot register right now").WithDebug(err.Error())
 	}
 
 	salt, err := uc.hasher.RandomStr(30)

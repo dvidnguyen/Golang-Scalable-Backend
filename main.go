@@ -28,6 +28,7 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(middleware.Recovery())
 	tokenProvider := component.NewJWTProvider("very-important-please-change-it!",
 		60*60*24*7, 60*60*24*14)
 	authClient := usecase.NewIntrospectUC(repository.NewUserRepository(db), repository.NewSessionRepository(db), tokenProvider)
