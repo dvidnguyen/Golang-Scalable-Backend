@@ -2,6 +2,7 @@ package main
 
 import (
 	"Ls04_GORM/builder"
+	"Ls04_GORM/common"
 	"Ls04_GORM/component"
 	"Ls04_GORM/middleware"
 	"Ls04_GORM/module/product/controller"
@@ -12,25 +13,32 @@ import (
 	"Ls04_GORM/module/user/usecase"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	sctx "github.com/viettranx/service-context"
+	"github.com/viettranx/service-context/component/gormc"
 )
 
-func main() {
-	dsn := os.Getenv("DB_CONN_STR")
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+func newServiceContext() sctx.ServiceContext {
+	return sctx.NewServiceContext(
+		sctx.WithName("GSB"),
+		sctx.WithComponent(gormc.NewGormDB(common.KeyGorm, "")),
+		sctx.WithComponent(component.NewJWT(common.KeyJWT)),
+	)
+}
 
-	if err != nil {
+func main() {
+	service := newServiceContext()
+
+	if err := service.Load(); err != nil {
 		log.Fatalln(err)
 	}
+	db := service.MustGet(common.KeyGorm).(common.DBContext).GetDB()
 
 	r := gin.Default()
 	r.Use(middleware.Recovery())
-	tokenProvider := component.NewJWTProvider("very-important-please-change-it!",
-		60*60*24*7, 60*60*24*14)
+
+	tokenProvider := service.MustGet(common.KeyJWT).(component.TokenProvider)
 	authClient := usecase.NewIntrospectUC(repository.NewUserRepository(db), repository.NewSessionRepository(db), tokenProvider)
 
 	r.GET("/ping", middleware.RequireAuth(authClient), func(c *gin.Context) {

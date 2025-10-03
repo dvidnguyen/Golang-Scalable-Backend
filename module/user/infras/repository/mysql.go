@@ -23,7 +23,7 @@ func NewUserRepository(db *gorm.DB) userRepository {
 func (repo userRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var dto UserDTO
 
-	if err := repo.db.Table(TbName).Where("emails = ?", email).First(&dto).Error; err != nil {
+	if err := repo.db.Table(TbName).Where("email = ?", email).First(&dto).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, common.ErrRecordNotFound
 		}

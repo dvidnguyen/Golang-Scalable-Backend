@@ -5,6 +5,8 @@ import (
 	"Ls04_GORM/module/user/domain"
 	"context"
 	"time"
+
+	"github.com/viettranx/service-context/core"
 )
 
 type LoginUC struct {
@@ -25,11 +27,11 @@ func (uc *LoginUC) Login(ctx context.Context, dto EmailPasswordLogin) (*TokenRes
 	user, err := uc.userRepo.FindByEmail(ctx, dto.Email)
 
 	if err != nil {
-		return nil, err
+		return nil, core.ErrInternalServerError.WithError("cannot login right now").WithDebug(err.Error())
 	}
 
 	if user.Status() == "banned" {
-		return nil, domain.ErrUserBanned
+		return nil, core.ErrBadRequest.WithError("user already banned").WithDebug(err.Error())
 	}
 	count, err := uc.sessionRepo.CountSessionByUserId(ctx, user.Id())
 	if err != nil {
