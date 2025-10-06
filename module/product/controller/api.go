@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"Ls04_GORM/module/product/productdomain"
+	"Ls04_GORM/module/product/domain"
 	"context"
 )
 
 type CreateProductUseCase interface {
-	CreateProduct(ctx context.Context, prod *productdomain.ProductCreationDTO) error
+	CreateProduct(ctx context.Context, prod *domain.ProductCreationDTO) error
 }
 
 type APIController struct {

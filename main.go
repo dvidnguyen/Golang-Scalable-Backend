@@ -5,8 +5,9 @@ import (
 	"Ls04_GORM/common"
 	"Ls04_GORM/component"
 	"Ls04_GORM/middleware"
+	"Ls04_GORM/module/image"
 	"Ls04_GORM/module/product/controller"
-	"Ls04_GORM/module/product/productdomain/productusecase"
+	"Ls04_GORM/module/product/domain/productusecase"
 	"Ls04_GORM/module/product/productmysql"
 	"Ls04_GORM/module/user/infras/httpservice"
 	"Ls04_GORM/module/user/infras/repository"
@@ -24,6 +25,7 @@ func newServiceContext() sctx.ServiceContext {
 		sctx.WithName("GSB"),
 		sctx.WithComponent(gormc.NewGormDB(common.KeyGorm, "")),
 		sctx.WithComponent(component.NewJWT(common.KeyJWT)),
+		sctx.WithComponent(component.NewAWSS3Provider(common.KeyAWSS3)),
 	)
 }
 
@@ -62,7 +64,8 @@ func main() {
 
 	//userUC := usecase.NewUseCase(repository.NewUserRepository(db), repository.NewSessionRepository(db), &common.Hasher{}, tokenProvider)
 	userUseCase := usecase.UseCaseWithBuilder(builder.NewSimpleBuilder(db, tokenProvider))
-	httpservice.NewService(userUseCase).Routes(v1)
+	httpservice.NewService(userUseCase, service).SetAuthClient(authClient).Routes(v1)
+	image.NewHTTPService(service).Routes(v1)
 	r.Run(":3000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 

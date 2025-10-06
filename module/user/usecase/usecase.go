@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"Ls04_GORM/common"
 	"Ls04_GORM/module/user/domain"
 	"context"
 
@@ -61,12 +62,14 @@ type UserRepository interface {
 	UserQueryRepository
 	UserCmdRepository
 }
+
 type UserQueryRepository interface {
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
 	FindById(ctx context.Context, id uuid.UUID) (*domain.User, error)
 }
 type UserCmdRepository interface {
 	Create(ctx context.Context, data *domain.User) error
+	Update(ctx context.Context, data *domain.User) error
 }
 
 type SessionRepository interface {
@@ -81,4 +84,9 @@ type SessionQueryRepository interface {
 type SessionCmdRepository interface {
 	Create(ctx context.Context, data *domain.Session) error
 	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+type ImgRepository interface {
+	Find(ctx context.Context, id uuid.UUID) (*common.Image, error)
+	SetImageStatusActivated(ctx context.Context, id uuid.UUID) error
 }

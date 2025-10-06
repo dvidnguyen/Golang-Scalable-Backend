@@ -1,5 +1,11 @@
 package usecase
 
+import (
+	"Ls04_GORM/common"
+
+	"github.com/google/uuid"
+)
+
 type EmailPasswordRegistration struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
@@ -16,4 +22,8 @@ type TokenResponse struct {
 	AccessTokenExpiresAt  int    `json:"access_exp_at"`
 	RefreshToken          string `json:"refresh_token"`
 	RefreshTokenExpiresAt int    `json:"refresh_exp_at"`
+}
+type SingleImgDTO struct {
+	Requester common.Requester `json:"-"`
+	ImageID   uuid.UUID        `json:"image_id"`
 }

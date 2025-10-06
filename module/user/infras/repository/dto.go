@@ -9,17 +9,18 @@ import (
 
 type UserDTO struct {
 	Id        uuid.UUID
-	FirstName string `gorm:"column:first_name" json:"first_name"`
-	LastName  string `gorm:"column:last_name" json:"last_name"`
-	Email     string `gorm:"column:email" json:"email"`
-	Password  string `gorm:"column:password" json:"password"`
-	Salt      string `gorm:"column:salt" json:"salt"`
-	Role      string `gorm:"column:role" json:"role"`
-	Status    string `gorm:"column:status" json:"status"`
+	FirstName string  `gorm:"column:first_name" json:"first_name"`
+	LastName  string  `gorm:"column:last_name" json:"last_name"`
+	Email     string  `gorm:"column:email" json:"email"`
+	Password  string  `gorm:"column:password" json:"password"`
+	Salt      string  `gorm:"column:salt" json:"salt"`
+	Role      string  `gorm:"column:role" json:"role"`
+	Status    string  `gorm:"column:status" json:"status"`
+	Avatar    *string `gorm:"column:avatar" json:"avatar"`
 }
 
 func (dto UserDTO) ToEntity() (*domain.User, error) {
-	return domain.NewUser(dto.Id, dto.FirstName, dto.LastName, dto.Email, dto.Password, dto.Salt, domain.GetRole(dto.Role), dto.Status)
+	return domain.NewUser(dto.Id, dto.FirstName, dto.LastName, dto.Email, dto.Password, dto.Salt, domain.GetRole(dto.Role), dto.Status, StringFromPointer(dto.Avatar))
 }
 
 type SessionDTO struct {
@@ -33,4 +34,14 @@ type SessionDTO struct {
 func (dto SessionDTO) ToEntity() (*domain.Session, error) {
 	s := domain.NewSession(dto.Id, dto.UserId, dto.RefreshToken, dto.AccessExpAt, dto.RefreshExpAt)
 	return s, nil
+}
+func StringFromPointer(ptr *string) string {
+	if ptr == nil {
+		return ""
+	}
+	return *ptr
+}
+
+func GetStrPt(s string) *string {
+	return &s
 }

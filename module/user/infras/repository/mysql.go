@@ -59,3 +59,22 @@ func (repo userRepository) Create(ctx context.Context, data *domain.User) error 
 	}
 	return nil
 }
+func (repo userRepository) Update(ctx context.Context, data *domain.User) error {
+
+	dto := UserDTO{
+		Id:        data.Id(),
+		FirstName: data.FirstName(),
+		LastName:  data.LastName(),
+		Email:     data.Email(),
+		Password:  data.Password(),
+		Salt:      data.Salt(),
+		Role:      data.Role().String(),
+		Status:    data.Status(),
+		Avatar:    GetStrPt(data.Avatar()),
+	}
+
+	if err := repo.db.Table(TbName).Create(&dto).Error; err != nil {
+		return err
+	}
+	return nil
+}

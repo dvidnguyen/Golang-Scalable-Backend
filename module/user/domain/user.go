@@ -29,9 +29,10 @@ type User struct {
 	salt      string
 	role      Role
 	status    string
+	avatar    string
 }
 
-func NewUser(id uuid.UUID, firstName string, lastName string, email string, password string, salt string, role Role, status string) (*User, error) {
+func NewUser(id uuid.UUID, firstName string, lastName string, email string, password string, salt string, role Role, status string, avatar string) (*User, error) {
 	// Todo Validation
 	// Check UUID rỗng
 	if id == uuid.Nil {
@@ -61,7 +62,7 @@ func NewUser(id uuid.UUID, firstName string, lastName string, email string, pass
 	if strings.TrimSpace(salt) == "" {
 		return nil, fmt.Errorf("salt is required")
 	}
-	return &User{id: id, firstName: firstName, lastName: lastName, email: email, password: password, salt: salt, role: role, status: status}, nil
+	return &User{id: id, firstName: firstName, lastName: lastName, email: email, password: password, salt: salt, role: role, status: status, avatar: avatar}, nil
 }
 
 func (u User) Id() uuid.UUID {
@@ -92,6 +93,11 @@ func (u User) Role() Role {
 	return u.role
 }
 func (u User) Status() string { return u.status }
+func (u User) Avatar() string { return u.avatar }
+func (u *User) ChangeAvatar(avt string) error {
+	u.avatar = avt
+	return nil
+}
 
 type Role int
 

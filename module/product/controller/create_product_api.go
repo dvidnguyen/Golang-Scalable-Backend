@@ -2,7 +2,7 @@ package controller
 
 import (
 	"Ls04_GORM/common"
-	"Ls04_GORM/module/product/productdomain"
+	"Ls04_GORM/module/product/domain"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +12,7 @@ import (
 func (api APIController) CreateProductAPI(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Check & parse data from body
-		var productData productdomain.ProductCreationDTO
+		var productData domain.ProductCreationDTO
 
 		if err := c.Bind(&productData); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
