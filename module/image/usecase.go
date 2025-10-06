@@ -21,27 +21,28 @@ type UploadImageUC struct {
 }
 
 func (uc UploadImageUC) UploadImage(ctx context.Context, dto UploadDTO) (*Image, error) {
-	dstFileName := fmt.Sprintf("%s/%s", time.Now().UnixNano(), dto.FileName)
+	dstFileName := fmt.Sprintf("%d_%s", time.Now().UTC().UnixNano(), dto.FileName)
 	if err := uc.uploader.SaveFileUploaded(ctx, dto.FileData, dstFileName); err != nil {
 		return nil, core.ErrInternalServerError.WithError(ErrCannotUploadImage.Error()).WithDebug(err.Error())
 	}
 	now := time.Now().UTC()
-	image := NewImage(
-		common.GenUUID(),
-		dto.Name,
-		dstFileName,
-		"", // chưa có fileUrl, hoặc để sau repo fill
-		dto.FileSize,
-		dto.FileType,
-		uc.uploader.GetName(),
-		StatusUploaded,
-		now,
-		now,
-	)
-	if err := uc.repo.Create(ctx, image); err != nil {
+	image := Image{
+		Id:              common.GenUUID(),
+		Title:           dto.Name,
+		FileName:        dstFileName,
+		FileSize:        dto.FileSize,
+		FileType:        dto.FileType,
+		StorageProvider: uc.uploader.GetName(),
+		Status:          StatusUploaded,
+		CreatedAt:       now,
+		UpdatedAt:       now,
+	}
+
+	if err := uc.repo.Create(ctx, &image); err != nil {
 		return nil, core.ErrInternalServerError.WithError(ErrCannotUploadImage.Error()).WithDebug(err.Error())
 	}
-	return image, nil
+
+	return &image, nil
 
 }
 
