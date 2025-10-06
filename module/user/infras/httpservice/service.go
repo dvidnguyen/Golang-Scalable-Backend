@@ -64,9 +64,7 @@ func (s *service) handleChangeAvatar() gin.HandlerFunc {
 		dbCtx := c.MustGet(common.KeyGorm).(common.DBContext)
 		userRepo := repository.NewUserRepository(dbCtx.GetDB())
 		imgRepo := image.NewRepo(dbCtx.GetDB())
-		err := usecase.NewChangeAvatarUC(userRepo, userRepo, imgRepo)
-
-		if err != nil {
+		if err := usecase.NewChangeAvatarUC(userRepo, userRepo, imgRepo).ChangeAvatar(c.Request.Context(), dto); err != nil {
 			common.WriteErrorResponse(c, err)
 			return
 		}
@@ -103,7 +101,7 @@ func (s *service) Routes(g *gin.RouterGroup) {
 	g.PATCH("/change-avatar", middleware.RequireAuth(s.authClient), s.handleChangeAvatar())
 }
 
-func (s service) SetAuthClient(ac middleware.AuthClient) service {
+func (s service) SetAuthClient(ac middleware.AuthClient) *service {
 	s.authClient = ac
-	return s
+	return &s
 }
