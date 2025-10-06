@@ -2,6 +2,8 @@ package image
 
 import (
 	"Ls04_GORM/common"
+	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +18,8 @@ type httpService struct {
 func NewHTTPService(serviceCtx sctx.ServiceContext) httpService {
 	return httpService{serviceCtx: serviceCtx}
 }
-func (s httpService) HandleUploadImage() gin.HandlerFunc {
+
+func (s httpService) handleUploadImage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		f, err := c.FormFile("file")
 
@@ -63,6 +66,18 @@ func (s httpService) HandleUploadImage() gin.HandlerFunc {
 
 		media.SetCDNDomain(uploader.GetDomain())
 
+		fmt.Println("DEBUG FileUrl:", media.FileUrl)
+
 		c.JSON(http.StatusOK, core.ResponseData(media))
 	}
+}
+
+type mockImageRepo struct{}
+
+func (mockImageRepo) Create(ctx context.Context, entity *Image) error {
+	return nil
+}
+
+func (s httpService) Routes(group *gin.RouterGroup) {
+	group.POST("/upload-image", s.handleUploadImage())
 }

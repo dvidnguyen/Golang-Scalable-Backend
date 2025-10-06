@@ -44,6 +44,6 @@ func NewImage(id uuid.UUID, title string, fileName string, fileUrl string, fileS
 	return &Image{Id: id, Title: title, FileName: fileName, FileUrl: fileUrl, FileSize: fileSize, FileType: fileType, StorageProvider: storageProvider, Status: status, CreatedAt: createdAt, UpdatedAt: updatedAt}
 }
 
-func (img Image) SetCDNDomain(domain string) bool {
+func (img *Image) SetCDNDomain(domain string) {
 	img.FileUrl = fmt.Sprintf("%s/%s", domain, img.FileName)
 }
