@@ -39,7 +39,7 @@ func (uc *IntrospectUC) IntrospectToken(ctx context.Context, accessToken string)
 		return nil, err
 	}
 
-	user, err := uc.userQueryRepo.FindById(ctx, userId)
+	user, err := uc.userQueryRepo.Find(ctx, userId)
 	if err != nil {
 		return nil, err
 	}

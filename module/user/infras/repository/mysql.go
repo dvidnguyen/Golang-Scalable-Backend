@@ -31,7 +31,7 @@ func (repo userRepository) FindByEmail(ctx context.Context, email string) (*doma
 	}
 	return dto.ToEntity()
 }
-func (repo userRepository) FindById(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+func (repo userRepository) Find(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	var dto UserDTO
 
 	if err := repo.db.Table(TbName).Where("id = ?", id).First(&dto).Error; err != nil {
@@ -73,8 +73,9 @@ func (repo userRepository) Update(ctx context.Context, data *domain.User) error 
 		Avatar:    GetStrPt(data.Avatar()),
 	}
 
-	if err := repo.db.Table(TbName).Create(&dto).Error; err != nil {
+	if err := repo.db.Table(TbName).Where("id = ?", data.Id()).Updates(&dto).Error; err != nil {
 		return err
 	}
+
 	return nil
 }
