@@ -61,7 +61,6 @@ func (s *service) handleChangeAvatar() gin.HandlerFunc {
 			return
 		}
 		dto.Requester = c.MustGet(common.KeyRequester).(common.Requester)
-
 		dbCtx := s.sctx.MustGet(common.KeyGorm).(common.DBContext)
 
 		userRepo := repository.NewUserRepository(dbCtx.GetDB())

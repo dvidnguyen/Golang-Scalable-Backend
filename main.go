@@ -8,6 +8,7 @@ import (
 	"Ls04_GORM/module/image"
 	"Ls04_GORM/module/product/controller"
 	"Ls04_GORM/module/product/domain/productusecase"
+	ProductHTTP "Ls04_GORM/module/product/infras/http_service"
 	"Ls04_GORM/module/product/productmysql"
 	"Ls04_GORM/module/user/infras/httpservice"
 	"Ls04_GORM/module/user/infras/repository"
@@ -66,6 +67,7 @@ func main() {
 	userUseCase := usecase.UseCaseWithBuilder(builder.NewSimpleBuilder(db, tokenProvider))
 	httpservice.NewService(userUseCase, service).SetAuthClient(authClient).Routes(v1)
 	image.NewHTTPService(service).Routes(v1)
+	ProductHTTP.NewHttpService(service).Routes(v1)
 	r.Run(":3000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
