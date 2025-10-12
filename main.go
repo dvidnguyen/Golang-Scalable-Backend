@@ -5,6 +5,7 @@ import (
 	"Ls04_GORM/common"
 	"Ls04_GORM/component"
 	"Ls04_GORM/middleware"
+	CatHTTTP "Ls04_GORM/module/category/infras"
 	"Ls04_GORM/module/image"
 	"Ls04_GORM/module/product/controller"
 	"Ls04_GORM/module/product/domain/productusecase"
@@ -68,6 +69,7 @@ func main() {
 	httpservice.NewService(userUseCase, service).SetAuthClient(authClient).Routes(v1)
 	image.NewHTTPService(service).Routes(v1)
 	ProductHTTP.NewHttpService(service).Routes(v1)
+	CatHTTTP.NewHttpService(service).Routes(v1)
 	r.Run(":3000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
