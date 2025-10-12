@@ -60,8 +60,9 @@ func (s *service) handleChangeAvatar() gin.HandlerFunc {
 			common.WriteErrorResponse(c, core.ErrBadRequest.WithError(err.Error()))
 			return
 		}
-		dto.Requester = c.MustGet(common.KeyGorm).(common.Requester)
-		dbCtx := c.MustGet(common.KeyGorm).(common.DBContext)
+		dto.Requester = c.MustGet(common.KeyRequester).(common.Requester)
+		dbCtx := s.sctx.MustGet(common.KeyGorm).(common.DBContext)
+
 		userRepo := repository.NewUserRepository(dbCtx.GetDB())
 		imgRepo := image.NewRepo(dbCtx.GetDB())
 		if err := usecase.NewChangeAvatarUC(userRepo, userRepo, imgRepo).ChangeAvatar(c.Request.Context(), dto); err != nil {

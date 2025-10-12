@@ -15,10 +15,8 @@ type repo struct {
 
 func (r repo) Find(ctx context.Context, id uuid.UUID) (*common.Image, error) {
 	var img Image
+
 	if err := r.db.Table(TbName).Where("id = ?", id).First(&img).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, common.ErrRecordNotFound
-		}
 		return nil, errors.WithStack(err)
 	}
 	return &common.Image{
@@ -33,7 +31,7 @@ func (r repo) Find(ctx context.Context, id uuid.UUID) (*common.Image, error) {
 }
 
 func (r repo) SetImageStatusActivated(ctx context.Context, id uuid.UUID) error {
-	if err := r.db.Table(TbName).Where("id = ?", id).First(&Image{Status: StatusActivated}).Error; err != nil {
+	if err := r.db.Table(TbName).Where("id = ?", id).Update("status", StatusActivated).Error; err != nil {
 		return errors.WithStack(err)
 	}
 	return nil

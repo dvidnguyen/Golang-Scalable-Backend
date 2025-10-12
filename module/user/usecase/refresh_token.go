@@ -30,7 +30,7 @@ func (uc *refreshTokenUC) RefreshToken(ctx context.Context, refreshToken string)
 	if session.RefreshExpAt().UnixNano() < time.Now().UTC().UnixNano() {
 		return nil, errors.New("refresh token has expired")
 	}
-	user, err := uc.userRepo.FindById(ctx, session.UserId())
+	user, err := uc.userRepo.Find(ctx, session.UserId())
 
 	if err != nil {
 		return nil, err
