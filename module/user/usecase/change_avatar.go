@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"Ls04_GORM/common"
+	"Ls04_GORM/common/asyncjob"
 	"Ls04_GORM/module/user/domain"
 	"context"
 	"fmt"
@@ -53,7 +54,19 @@ func (uc *ChangeAvatarUC) ChangeAvatar(ctx context.Context, dto SingleImgDTO) er
 	}
 	go func() {
 		defer common.Recover()
-		_ = uc.imgRepo.SetImageStatusActivated(ctx, dto.ImageID)
+
+		job := asyncjob.NewJob(
+			func(ctx context.Context) error {
+				return uc.imgRepo.SetImageStatusActivated(ctx, dto.ImageID)
+			},
+			asyncjob.WithName("Change avatar image status"),
+		)
+		asyncjob.NewGroup(true, job).Run(ctx)
+		//for i := 0; i < 3; i++ {
+		//	if err := uc.imgRepo.SetImageStatusActivated(ctx, dto.ImageID); err == nil {
+		//		return
+		//	}
+		//}
 	}()
 
 	return nil
